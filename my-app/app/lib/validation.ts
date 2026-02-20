@@ -2,9 +2,9 @@
  * 檔案驗證同輸入驗證工具
  */
 
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-export const MAX_TEXT_LENGTH = 20000; // 字數
-export const MAX_TEXT_WORDS = 2000; // 單詞數（針對英文）
+export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 10MB
+export const MAX_TEXT_LENGTH = 50000; // 字數
+export const MAX_TEXT_WORDS = 5000; // 單詞數（針對英文）
 export const ALLOWED_FILE_TYPES = ['application/pdf', 'text/plain', 'text/markdown'];
 
 export interface ValidationError {
