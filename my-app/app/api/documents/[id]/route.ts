@@ -3,15 +3,16 @@ import { createServerSupabase } from '@/app/lib/supabase';
 
 /**
  * GET /api/documents/[id]
- * 获取单个 document 及其 summary
+ * 獲取單個 document 及其 summary
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createServerSupabase();
-    const documentId = params.id;
+    const documentId = id;
 
     const { data: document, error: docError } = await supabase
       .from('documents')
@@ -26,7 +27,7 @@ export async function GET(
 
     if (docError || !document) {
       return NextResponse.json(
-        { error: '文件未找到' },
+        { error: '檔案未搵著' },
         { status: 404 }
       );
     }
@@ -36,9 +37,9 @@ export async function GET(
       document,
     });
   } catch (error) {
-    console.error('获取 document 失败:', error);
+    console.error('獲取 document 失敗:', error);
     return NextResponse.json(
-      { error: '服务器错误' },
+      { error: '伺服器錯誤' },
       { status: 500 }
     );
   }
@@ -46,40 +47,41 @@ export async function GET(
 
 /**
  * DELETE /api/documents/[id]
- * 删除 document 和相关的 summary
+ * 刪除 document 和相關嘅 summary
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createServerSupabase();
-    const documentId = params.id;
+    const documentId = id;
 
-    // 删除 document（summaries 会因为外键级联删除而自动删除）
+    // 刪除 document（summaries 會因為外鍵級聯刪除而自動刪除）
     const { error: deleteError } = await supabase
       .from('documents')
       .delete()
       .eq('id', documentId);
 
     if (deleteError) {
-      console.error('删除 document 失败:', deleteError);
+      console.error('刪除 document 失敗:', deleteError);
       return NextResponse.json(
-        { error: '删除失败' },
+        { error: '刪除失敗' },
         { status: 500 }
       );
     }
 
-    console.log('✅ Document 已删除:', documentId);
+    console.log('✅ Document 已刪除:', documentId);
 
     return NextResponse.json({
       success: true,
-      message: '文件已删除',
+      message: '檔案已刪除',
     });
   } catch (error) {
-    console.error('删除 API 错误:', error);
+    console.error('刪除 API 錯誤:', error);
     return NextResponse.json(
-      { error: '服务器错误' },
+      { error: '伺服器錯誤' },
       { status: 500 }
     );
   }

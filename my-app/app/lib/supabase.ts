@@ -3,25 +3,49 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    '⚠️ Supabase environment variables missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+function isPlaceholderValue(value: string): boolean {
+  return (
+    !value ||
+    value.includes('your-project.supabase.co') ||
+    value.includes('your-anon-key-here') ||
+    value.includes('your-service-role-key-here') ||
+    value.includes('your_anon_key_here') ||
+    value.includes('your_service_role_key_here')
   );
 }
 
-// 前端客户端（用于公开操作）
+export function isSupabaseConfigured(): boolean {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  return (
+    !isPlaceholderValue(supabaseUrl) &&
+    !isPlaceholderValue(supabaseAnonKey) &&
+    !isPlaceholderValue(serviceRoleKey)
+  );
+}
+
+export function getSupabaseConfigMessage(): string {
+  return 'Supabase 未配置。請喺 .env.local 設定 NEXT_PUBLIC_SUPABASE_URL、NEXT_PUBLIC_SUPABASE_ANON_KEY 同 SUPABASE_SERVICE_ROLE_KEY。';
+}
+
+if (isPlaceholderValue(supabaseUrl) || isPlaceholderValue(supabaseAnonKey)) {
+  console.warn(
+    '⚠️ Supabase 環境變數未正確配置。請設定 NEXT_PUBLIC_SUPABASE_URL 同 NEXT_PUBLIC_SUPABASE_ANON_KEY'
+  );
+}
+
+// 前端客戶端（用於公開操作）
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// 服务端客户端（用于 API routes，需要 SERVICE_ROLE_KEY）
+// 服務端客戶端（用於 API routes，需要 SERVICE_ROLE_KEY）
 export function createServerSupabase() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY 未设置');
+  if (!isSupabaseConfigured()) {
+    throw new Error(getSupabaseConfigMessage());
   }
   return createClient(supabaseUrl, serviceRoleKey);
 }
 
-// 类型定义
+// 型別定義
 export interface Document {
   id: string;
   filename: string;

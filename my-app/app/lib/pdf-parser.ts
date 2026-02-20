@@ -1,105 +1,95 @@
 /**
- * PDF 文本提取工具
+ * PDF 文字提取工具 - 僅客戶端使用
+ * 使用動態導入確保只在瀏覽器中載入 pdfjs-dist
  */
 
-import * as pdfjsLib from 'pdfjs-dist';
-
-// 设置 Worker（在浏览器中使用）
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Polyfill for DOMMatrix - 在任何導入前執行
+if (typeof window !== 'undefined' && !window.DOMMatrix) {
+  (window as any).DOMMatrix = class DOMMatrix {
+    a = 1;
+    b = 0;
+    c = 0;
+    d = 1;
+    e = 0;
+    f = 0;
+  };
 }
 
+let pdfjsLib: any = null;
+
 /**
- * 从 PDF 文件提取文本（前端使用）
+ * 延遲加載 pdfjs-dist - 確保只在客戶端
  */
-export async function extractTextFromPDFFile(file: File): Promise<string> {
+async function loadPdfLibrary() {
+  if (pdfjsLib) return pdfjsLib;
+
+  if (typeof window === 'undefined') {
+    throw new Error('PDF 提取只支持瀏覽器環境');
+  }
+
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    return extractTextFromPDFBuffer(arrayBuffer);
+    const lib = await import('pdfjs-dist');
+    lib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    pdfjsLib = lib;
+    return lib;
   } catch (error) {
-    console.error('PDF 提取失败:', error);
-    throw new Error('无法读取 PDF 文件。文件可能已损坏或格式不支持。');
+    console.error('載入 pdfjs-dist 失敗:', error);
+    throw error;
   }
 }
 
 /**
- * 从 PDF ArrayBuffer 提取文本
+ * 從 PDF 檔案提取文字（前端使用）
  */
-export async function extractTextFromPDFBuffer(buffer: ArrayBuffer): Promise<string> {
+export async function extractTextFromPDFFile(file: File): Promise<string> {
   try {
-    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+    const lib = await loadPdfLibrary();
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await lib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
       const pageText = textContent.items
-        .map((item: any) => item.str)
+        .map((item: unknown) => {
+          if (typeof item === 'object' && item !== null && 'str' in item) {
+            return (item as { str: string }).str;
+          }
+          return '';
+        })
         .join(' ');
       fullText += pageText + '\n';
     }
 
     if (!fullText.trim()) {
-      throw new Error('PDF 中未找到文本内容。此文件可能是扫描图像。');
+      throw new Error('PDF 中未搵著文字。呢個檔案可能係掃描圖像。');
     }
 
     return fullText.trim();
   } catch (error) {
-    console.error('PDF 缓冲区提取失败:', error);
-    throw error;
+    console.error('PDF 提取失敗:', error);
+    throw new Error('冇辦法讀取 PDF 檔案。檔案可能已毀壞或格式唔支持。');
   }
 }
 
 /**
- * 从 Base64 字符串提取 PDF 文本
- */
-export async function extractTextFromBase64PDF(base64: string): Promise<string> {
-  try {
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return extractTextFromPDFBuffer(bytes.buffer);
-  } catch (error) {
-    console.error('Base64 PDF 提取失败:', error);
-    throw new Error('无法处理 Base64 编码的 PDF');
-  }
-}
-
-/**
- * 验证 PDF 文件是否有效
+ * 驗證 PDF 檔案係咪有效
  */
 export async function validatePDF(file: File): Promise<boolean> {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const view = new Uint8Array(arrayBuffer);
 
-    // 检查 PDF 魔数（PDF 文件应以 %PDF 开头）
+    // 檢查 PDF 魔數（PDF 檔案應該以 %PDF 開始）
     const header = new TextDecoder().decode(view.slice(0, 4));
     if (!header.startsWith('%PDF')) {
-      throw new Error('文件不是有效的 PDF');
+      throw new Error('檔案唔係有效嘅 PDF');
     }
 
-    // 尝试解析 PDF 以验证其有效性
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    return pdf.numPages > 0;
+    return true;
   } catch (error) {
-    console.error('PDF 验证失败:', error);
+    console.error('PDF 驗證失敗:', error);
     return false;
-  }
-}
-
-/**
- * 获取 PDF 页码
- */
-export async function getPDFPageCount(file: File): Promise<number> {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    return pdf.numPages;
-  } catch (error) {
-    console.error('获取 PDF 页数失败:', error);
-    throw new Error('无法确定 PDF 页数');
   }
 }

@@ -5,7 +5,7 @@ import { validateRawText } from '@/app/lib/validation';
 
 /**
  * POST /api/summarize
- * 生成文件摘要（或重新生成）
+ * 生成檔案摘要（或重新生成）
  */
 export async function POST(request: NextRequest) {
   try {
@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
 
     if (!documentId) {
       return NextResponse.json(
-        { error: 'documentId 必须提供' },
+        { error: 'documentId 必須提供' },
         { status: 400 }
       );
     }
 
     const supabase = createServerSupabase();
 
-    // 1. 获取 document
+    // 1. 獲取 document
     const { data: document, error: docError } = await supabase
       .from('documents')
       .select('*')
@@ -30,12 +30,12 @@ export async function POST(request: NextRequest) {
 
     if (docError || !document) {
       return NextResponse.json(
-        { error: '文件未找到' },
+        { error: '檔案未搵著' },
         { status: 404 }
       );
     }
 
-    // 2. 验证文本
+    // 2. 驗證文字
     const textError = validateRawText(document.raw_text);
     if (textError) {
       return NextResponse.json(
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. 调用 AI API 生成摘要
-    console.log('🤖 开始生成摘要...');
+    // 3. 調用 AI API 生成摘要
+    console.log('🤖 開始生成摘要...');
     const summarizeRequest: SummarizeRequest = {
       text: document.raw_text,
       customPrompt,
@@ -62,14 +62,14 @@ export async function POST(request: NextRequest) {
       provider = result.provider;
       console.log(`✅ 摘要生成成功 (${provider})`);
     } catch (aiError) {
-      console.error('❌ AI 摘要生成失败:', aiError);
+      console.error('❌ AI 摘要生成失敗:', aiError);
       return NextResponse.json(
-        { error: '摘要生成失败。请检查 API 密钥配置。' },
+        { error: '摘要生成失敗。請檢查 API 密鑰配置。' },
         { status: 500 }
       );
     }
 
-    // 4. 保存或更新 summary 记录
+    // 4. 儲存或更新 summary 記錄
     const { data: existingSummary } = await supabase
       .from('summaries')
       .select('id, regeneration_count')
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     let summaryData;
     if (existingSummary) {
-      // 更新现有记录
+      // 更新現有記錄
       const { data, error } = await supabase
         .from('summaries')
         .update({
@@ -91,15 +91,15 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error) {
-        console.error('更新摘要失败:', error);
+        console.error('更新摘要失敗:', error);
         return NextResponse.json(
-          { error: '摘要保存失败' },
+          { error: '摘要儲存失敗' },
           { status: 500 }
         );
       }
       summaryData = data;
     } else {
-      // 创建新记录
+      // 建立新記錄
       const { data, error } = await supabase
         .from('summaries')
         .insert({
@@ -112,9 +112,9 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error) {
-        console.error('创建摘要失败:', error);
+        console.error('建立摘要失敗:', error);
         return NextResponse.json(
-          { error: '摘要保存失败' },
+          { error: '摘要儲存失敗' },
           { status: 500 }
         );
       }
@@ -127,9 +127,9 @@ export async function POST(request: NextRequest) {
       provider,
     });
   } catch (error) {
-    console.error('摘要 API 错误:', error);
+    console.error('摘要 API 錯誤:', error);
     return NextResponse.json(
-      { error: '服务器错误' },
+      { error: '伺服器錯誤' },
       { status: 500 }
     );
   }

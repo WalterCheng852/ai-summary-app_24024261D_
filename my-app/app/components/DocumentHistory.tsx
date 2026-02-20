@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { safeParseJSON, getErrorMessage } from '@/app/lib/api-client';
+import type { Document, DocumentsResponse } from '@/app/types';
 
 interface DocumentHistoryProps {
-  onSelectDocument: (doc: any) => void;
+  onSelectDocument: (doc: Document) => void;
 }
 
 export default function DocumentHistory({ onSelectDocument }: DocumentHistoryProps) {
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -16,26 +18,45 @@ export default function DocumentHistory({ onSelectDocument }: DocumentHistoryPro
   }, []);
 
   const fetchDocuments = async () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    if (!supabaseUrl || supabaseUrl.includes('your-project.supabase.co')) {
+      setDocuments([]);
+      setError('Supabase 未配置，暫時未能讀取歷史記錄。請先設定 .env.local。');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await fetch('/api/documents');
-      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = await getErrorMessage(response);
+        setError(errorMsg);
+        return;
+      }
+
+      const data = await safeParseJSON<DocumentsResponse>(response);
+      if (!data) {
+        setError('獲取歷史失敗：無效的伺服器回應');
+        return;
+      }
 
       if (data.success) {
         setDocuments(data.documents || []);
       } else {
-        setError('获取历史失败');
+        setError('獲取歷史失敗');
       }
     } catch (err) {
-      console.error('获取历史错误:', err);
-      setError('获取历史失败');
+      console.error('獲取歷史錯誤:', err);
+      setError('獲取歷史失敗');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (docId: string) => {
-    if (!confirm('确定要删除这个文件吗？')) return;
+    if (!confirm('確定要刪除這個檔案嗎？')) return;
 
     try {
       const response = await fetch(`/api/documents/${docId}`, {
@@ -45,50 +66,54 @@ export default function DocumentHistory({ onSelectDocument }: DocumentHistoryPro
       if (response.ok) {
         setDocuments(documents.filter((d) => d.id !== docId));
       } else {
-        setError('删除失败');
+        setError('刪除失敗');
       }
     } catch (err) {
-      console.error('删除错误:', err);
-      setError('删除失败');
+      console.error('刪除錯誤:', err);
+      setError('刪除失敗');
     }
   };
 
   if (isLoading) {
-    return <div className="text-center py-8 text-black/50">加载中...</div>;
+    return <div className="text-center py-12 text-black/50 font-serif text-base">載入中...</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-600">{error}</div>;
+    return <div className="text-center py-12 text-black font-serif text-base border-2 border-black/20 p-4">{error}</div>;
   }
 
   if (documents.length === 0) {
     return (
-      <div className="text-center py-8 text-black/50 font-serif">
-        还没有历史记录
+      <div className="text-center py-12 text-black/60 font-serif text-lg">
+        😴 還沒有歷史記錄
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="font-serif text-lg font-semibold border-b border-black pb-3">
-        历史记录
-      </h3>
-      <div className="space-y-2 max-h-96 overflow-y-auto">
+    <div className="space-y-6">
+      <div className="space-y-4 max-h-96 overflow-y-auto">
         {documents.map((doc) => (
           <div
             key={doc.id}
-            className="border border-black/20 p-3 hover:bg-black/5 transition-colors cursor-pointer group"
+            className="border-2 border-black p-6 hover:bg-black hover:text-white transition-all duration-100 cursor-pointer group relative"
           >
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-3 group-hover:opacity-5"
+              style={{
+                backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 1px, #fff 1px, #fff 2px)',
+                backgroundSize: '4px 100%'
+              }}
+            />
             <button
               onClick={() => onSelectDocument(doc)}
-              className="w-full text-left"
+              className="w-full text-left relative z-10"
             >
-              <p className="font-serif font-semibold text-sm mb-1 truncate">
+              <p className="font-serif font-bold text-lg mb-2 truncate group-hover:underline">
                 {doc.filename}
               </p>
-              <p className="text-xs text-black/50 font-mono">
-                {new Date(doc.created_at).toLocaleDateString('zh-CN', {
+              <p className="text-xs text-black/60 font-mono group-hover:text-white/70 uppercase tracking-wider">
+                {new Date(doc.created_at).toLocaleDateString('zh-TW', {
                   month: 'short',
                   day: 'numeric',
                   hour: '2-digit',
@@ -101,9 +126,9 @@ export default function DocumentHistory({ onSelectDocument }: DocumentHistoryPro
                 e.stopPropagation();
                 handleDelete(doc.id);
               }}
-              className="mt-2 w-full py-1 text-xs border border-black/20 text-black font-serif hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-            >
-              删除
+              className="mt-4 w-full py-2 text-sm border-2 border-current text-current font-serif font-semibold hover:bg-white hover:text-black transition-all duration-100 opacity-0 group-hover:opacity-100 relative z-10"
+              >
+              🗑️ 刪除
             </button>
           </div>
         ))}

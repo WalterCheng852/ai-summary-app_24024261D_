@@ -1,6 +1,6 @@
 /**
  * GitHub Model API 集成
- * 优先级：GitHub Model API（免费）> OpenRouter（备用）
+ * 優先級：GitHub Model API（免費）> OpenRouter（備用）
  */
 
 export interface SummarizeRequest {
@@ -17,28 +17,28 @@ export interface SummarizeResponse {
 }
 
 /**
- * 通过 GitHub Model API 生成摘要
+ * 透過 GitHub Model API 生成摘要
  */
 export async function summarizeWithGitHubModel(
   request: SummarizeRequest
 ): Promise<SummarizeResponse> {
   const apiKey = process.env.GITHUB_MODEL_API_KEY;
   if (!apiKey) {
-    throw new Error('GITHUB_MODEL_API_KEY 未设置');
+    throw new Error('GITHUB_MODEL_API_KEY 未設置啦');
   }
 
-  const systemPrompt = `你是一个专业的文件摘要生成器。
-- 提取关键信息，清晰简洁
-- 保留重要细节
-- 用项目符号或段落组织内容
-- 语言：${getLanguageForTone(request.tone || 'professional')}`;
+  const systemPrompt = `你係一個專業嘅檔案摘要生成器。
+- 提取關鍵信息，清晰簡潔
+- 保留重要細節
+- 用項目符號或段落組織內容
+- 語言：${getLanguageForTone(request.tone || 'professional')}`;
 
   const userPrompt = request.customPrompt
-    ? `请基于以下内容生成摘要，要求：${request.customPrompt}\n\n内容：\n${request.text}`
-    : `请生成以下内容的摘要（最多 ${request.maxLength || 300} 字）：\n\n${request.text}`;
+    ? `請基於以下內容生成摘要，要求：${request.customPrompt}\n\n內容：\n${request.text}`
+    : `請生成以下內容嘅摘要（最多 ${request.maxLength || 300} 字）：\n\n${request.text}`;
 
   try {
-    console.log('📝 调用 GitHub Model API...');
+    console.log('📝 調用 GitHub Model API...');
     const response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
       method: 'POST',
       headers: {
@@ -59,7 +59,7 @@ export async function summarizeWithGitHubModel(
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('GitHub Model API 错误:', error);
+      console.error('GitHub Model API 錯誤:', error);
       throw new Error(`GitHub Model API 返回 ${response.status}: ${error}`);
     }
 
@@ -67,7 +67,7 @@ export async function summarizeWithGitHubModel(
     const summary = data.choices?.[0]?.message?.content || '';
 
     if (!summary) {
-      throw new Error('摘要生成失败：API 返回空结果');
+      throw new Error('摘要生成失敗：API 返回空結果');
     }
 
     return {
@@ -76,35 +76,35 @@ export async function summarizeWithGitHubModel(
       tokensUsed: data.usage?.total_tokens,
     };
   } catch (error) {
-    console.error('❌ GitHub Model API 失败:', error);
-    console.log('🔄 切换到 OpenRouter...');
+    console.error('❌ GitHub Model API 失敗:', error);
+    console.log('🔄 轉用 OpenRouter...');
     return summarizeWithOpenRouter(request);
   }
 }
 
 /**
- * 备用方案：通过 OpenRouter 生成摘要
+ * 備用方案：透過 OpenRouter 生成摘要
  */
 export async function summarizeWithOpenRouter(
   request: SummarizeRequest
 ): Promise<SummarizeResponse> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    throw new Error('两个 API 都未设置：GITHUB_MODEL_API_KEY 和 OPENROUTER_API_KEY');
+    throw new Error('兩個 API 都未設置：GITHUB_MODEL_API_KEY 同 OPENROUTER_API_KEY');
   }
 
-  const systemPrompt = `你是一个专业的文件摘要生成器。
-- 提取关键信息，清晰简洁
-- 保留重要细节
-- 用项目符号或段落组织内容
-- 语言：${getLanguageForTone(request.tone || 'professional')}`;
+  const systemPrompt = `你係一個專業嘅檔案摘要生成器。
+- 提取關鍵信息，清晰簡潔
+- 保留重要細節
+- 用項目符號或段落組織內容
+- 語言：${getLanguageForTone(request.tone || 'professional')}`;
 
   const userPrompt = request.customPrompt
-    ? `请基于以下内容生成摘要，要求：${request.customPrompt}\n\n内容：\n${request.text}`
-    : `请生成以下内容的摘要（最多 ${request.maxLength || 300} 字）：\n\n${request.text}`;
+    ? `請基於以下內容生成摘要，要求：${request.customPrompt}\n\n內容：\n${request.text}`
+    : `請生成以下內容嘅摘要（最多 ${request.maxLength || 300} 字）：\n\n${request.text}`;
 
   try {
-    console.log('📝 调用 OpenRouter API...');
+    console.log('📝 調用 OpenRouter API...');
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -131,7 +131,7 @@ export async function summarizeWithOpenRouter(
     const summary = data.choices?.[0]?.message?.content || '';
 
     if (!summary) {
-      throw new Error('摘要生成失败：API 返回空结果');
+      throw new Error('摘要生成失敗：API 返回空結果');
     }
 
     return {
@@ -140,20 +140,20 @@ export async function summarizeWithOpenRouter(
       tokensUsed: data.usage?.total_tokens,
     };
   } catch (error) {
-    console.error('❌ OpenRouter 亦失败:', error);
+    console.error('❌ OpenRouter 都失敗咗:', error);
     throw error;
   }
 }
 
 /**
- * 根据风格返回对应提示
+ * 根據風格返回對應提示
  */
 function getLanguageForTone(tone: string): string {
   const tones: Record<string, string> = {
-    professional: '专业、正式、学术性强',
-    casual: '友好、随意、易读',
-    concise: '极简、要点突出、高度概括',
-    detailed: '详细、全面、包含所有细节',
+    professional: '專業、正式、學術性強',
+    casual: '友好、隨意、易讀',
+    concise: '極簡、要點突出、高度概括',
+    detailed: '詳細、全面、包含所有細節',
   };
   return tones[tone] || tones.professional;
 }

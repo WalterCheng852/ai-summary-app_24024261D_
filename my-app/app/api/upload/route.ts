@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabase } from '@/app/lib/supabase';
+import { createServerSupabase, isSupabaseConfigured, getSupabaseConfigMessage } from '@/app/lib/supabase';
 import { validateFile, getFileTypeFromExtension, validateRawText } from '@/app/lib/validation';
-import { extractTextFromBase64PDF } from '@/app/lib/pdf-parser';
 
 /**
  * POST /api/upload
@@ -14,22 +13,13 @@ export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get('content-type') || '';
 
-    // 檢查 Supabase 環境變數
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl?.includes('supabase.co') || !supabaseServiceRoleKey) {
-      console.error('❌ Supabase 環境變數冇配置好');
-      console.log('SUPABASE_URL:', supabaseUrl);
-      console.log('SERVICE_ROLE_KEY:', supabaseServiceRoleKey ? '已設置' : '未設置');
-      
+    if (!isSupabaseConfigured()) {
       return NextResponse.json(
-        { 
-          error: 'Supabase 未配置。請去 .env.local 填入 SUPABASE_URL、SUPABASE_ANON_KEY 同 SUPABASE_SERVICE_ROLE_KEY',
-          details: 'Environment variables missing'
+        {
+          error: getSupabaseConfigMessage(),
+          details: 'Environment variables missing or placeholder values',
         },
-        { status: 500 }
+        { status: 503 }
       );
     }
 
@@ -81,17 +71,15 @@ export async function POST(request: NextRequest) {
 
       // 提取文字
       if (fileType === 'pdf') {
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const base64 = Buffer.from(arrayBuffer).toString('base64');
-          rawText = await extractTextFromBase64PDF(base64);
-        } catch (error) {
-          console.error('PDF 提取失敗:', error);
-          return NextResponse.json(
-            { error: '無法提取 PDF 文字。檔案可能已損壞或係掃描影像。' },
-            { status: 400 }
-          );
-        }
+        // PDF 內容應該由客戶端提前提取並作為原始文字發送
+        // 伺服器端無法直接處理 PDF
+        return NextResponse.json(
+          { 
+            error: 'PDF 檔案需要客戶端提取文字。請確保 JavaScript 已啟用或使用 TXT/Markdown 檔案。',
+            hint: '呢個可能係因為 JavaScript 未加載或瀏覽器唔支持。'
+          },
+          { status: 400 }
+        );
       } else if (fileType === 'txt' || fileType === 'md') {
         rawText = await file.text();
       } else {
