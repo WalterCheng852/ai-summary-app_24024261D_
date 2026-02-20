@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 保存到 documents 表
-    console.log('💾 儲存檔案到 Supabase:', { filename, fileType, textLength: rawText.length });
+    // 第 1 步：建立臨時 document 記錄以取得 ID
+    console.log('💾 建立檔案記錄到 Supabase:', { filename, fileType, textLength: rawText.length });
 
     const { data: docData, error: docError } = await supabase
       .from('documents')
@@ -122,7 +122,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ 檔案上傳成功:', docData.id);
+    const documentId = docData.id;
+    console.log('✅ 建立檔案記錄成功:', documentId);
+
+    // 第 2 步：上傳原始檔案到 Object Storage
+    try {
+      console.log('📤 上傳檔案到 Object Storage...');
+      
+      const fileExtension = filename.split('.').pop() || 'txt';
+      const storageFilename = `${documentId}/original.${fileExtension}`;
+      
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('documents')
+        .upload(storageFilename, new Blob([rawText], { type: 'text/plain' }), {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (storageError) {
+        console.warn('⚠️ 檔案儲存失敗，但記錄已保存:', storageError.message);
+        // 不中止流程，數據庫記錄已保存
+      } else {
+        console.log('✅ 檔案上傳成功:', storageData.path);
+
+        // 第 3 步：取得公開 URL 並更新 document 記錄
+        const { data: publicData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(storageFilename);
+
+        const fileUrl = publicData.publicUrl;
+
+        const { error: updateError } = await supabase
+          .from('documents')
+          .update({ file_url: fileUrl })
+          .eq('id', documentId);
+
+        if (updateError) {
+          console.warn('⚠️ 更新 URL 失敗:', updateError.message);
+        }
+      }
+    } catch (storageException) {
+      console.warn('⚠️ 儲存異常:', storageException);
+      // 繼續進行，因為數據庫記錄已保存
+    }
+
+    console.log('✅ 檔案上傳流程完成:', documentId);
 
     return NextResponse.json({
       success: true,
