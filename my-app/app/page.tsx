@@ -16,7 +16,7 @@ export default function Home() {
     setCurrentDocument(document);
     setCurrentSummary(null);
     setError('');
-    setSuccess('文件上传成功，现在生成摘要');
+    setSuccess('檔案上傳成功，依家生成摘要');
   };
 
   const handleGenerateSummarySuccess = (summary: any) => {
@@ -38,23 +38,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-black font-serif">
-      {/* 顶部横线 */}
+      {/* 頂部橫線 */}
       <div className="h-1 bg-black" />
 
-      {/* 标题区 */}
+      {/* 標題區 */}
       <header className="border-b-4 border-black px-8 py-24 md:py-32 lg:py-40">
         <h1 className="font-serif text-8xl md:text-9xl font-bold tracking-tight leading-none mb-4">
           AI Summary
         </h1>
         <p className="text-lg md:text-xl text-black/70 font-serif max-w-2xl leading-relaxed">
-          上传你的文件或粘贴文本，让 AI 为你生成专业摘要。编辑、重新生成、保存。
+          上傳你嘅檔案或貼文字，讓 AI 為你生成專業摘要。編輯、重新生成、保存。
         </p>
       </header>
 
-      {/* 主要内容 */}
+      {/* 主要內容 */}
       <main className="px-8 py-24 md:py-32 lg:py-40">
         <div className="max-w-6xl mx-auto">
-          {/* 错误和成功消息 */}
+          {/* 錯誤同成功消息 */}
           {error && (
             <div className="border-2 border-black bg-black/5 p-6 mb-8 font-serif">
               <p className="text-black">❌ {error}</p>
@@ -67,14 +67,14 @@ export default function Home() {
             </div>
           )}
 
-          {/* 两列布局（桌面） 或 单列（手机） */}
+          {/* 兩列佈局（桌面） 或 單列（手機） */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* 左侧：上传和历史 */}
+            {/* 左邊：上傳同歷史 */}
             <div className="lg:col-span-1 space-y-12">
-              {/* 上传区 */}
+              {/* 上傳區 */}
               {!currentDocument ? (
                 <div className="border-4 border-black p-8">
-                  <h2 className="font-serif text-2xl font-semibold mb-6">上传文件</h2>
+                  <h2 className="font-serif text-2xl font-semibold mb-6">上傳檔案</h2>
                   <DocumentUploader
                     onUploadSuccess={handleUploadSuccess}
                     onError={handleError}
@@ -83,7 +83,7 @@ export default function Home() {
               ) : (
                 <div className="border-4 border-black p-8 space-y-4">
                   <div>
-                    <p className="font-serif text-sm text-black/60 mb-1">当前文件</p>
+                    <p className="font-serif text-sm text-black/60 mb-1">現在檔案</p>
                     <h3 className="font-serif text-lg font-semibold truncate">
                       {currentDocument.filename}
                     </h3>
@@ -95,18 +95,18 @@ export default function Home() {
                     }}
                     className="w-full py-2 px-4 border-2 border-black text-black font-serif font-semibold hover:bg-black hover:text-white transition-colors"
                   >
-                    上传新文件
+                    上傳新檔案
                   </button>
                 </div>
               )}
 
-              {/* 历史记录 */}
+              {/* 歷史記錄 */}
               <div className="border-4 border-black p-8">
                 <DocumentHistory onSelectDocument={handleSelectDocument} />
               </div>
             </div>
 
-            {/* 右侧：生成和编辑 */}
+            {/* 右邊：生成同編輯 */}
             <div className="lg:col-span-2 space-y-12">
               {currentDocument && !currentSummary && (
                 <div className="border-4 border-black p-8">
@@ -125,7 +125,7 @@ export default function Home() {
                 <div className="border-4 border-black p-8 space-y-8">
                   <div>
                     <h2 className="font-serif text-2xl font-semibold mb-4">
-                      摘要编辑器
+                      摘要編輯器
                     </h2>
                     <SummaryEditor
                       summary={currentSummary}
@@ -138,11 +138,11 @@ export default function Home() {
                     />
                   </div>
 
-                  {/* 原始文本预览 */}
+                  {/* 原始文字預覽 */}
                   <div className="border-t-4 border-black pt-8">
                     <details className="cursor-pointer">
                       <summary className="font-serif text-lg font-semibold mb-4">
-                        查看原始文本
+                        查看原始文字
                       </summary>
                       <div className="bg-black/5 border border-black/20 p-4 mt-4 font-serif text-sm leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
                         {currentDocument.raw_text.substring(0, 500)}
@@ -156,7 +156,7 @@ export default function Home() {
               {!currentDocument && (
                 <div className="border-4 border-black p-8 bg-black/5 text-center py-24">
                   <p className="font-serif text-lg text-black/60">
-                    上传文件或从历史中选择一个文件开始
+                    上傳檔案或從歷史中揀一個檔案開始
                   </p>
                 </div>
               )}
@@ -165,7 +165,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 底部横线 */}
+      {/* 底部橫線 */}
       <div className="h-1 bg-black" />
       <footer className="px-8 py-12 text-center text-sm text-black/60 font-serif">
         <p>AI Summary App • 2026 • Powered by GitHub Models</p>

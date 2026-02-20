@@ -45,7 +45,7 @@ export default function DocumentUploader({
   };
 
   const handleFileUpload = async (file: File) => {
-    // 验证文件
+    // 驗證檔案
     const validationError = validateFile(file);
     if (validationError) {
       onError(validationError.message);
@@ -64,38 +64,38 @@ export default function DocumentUploader({
 
       setUploadProgress(50);
 
-      const data = await response.json();
-
       if (!response.ok) {
-        onError(data.error || '上传失败');
+        const data = await response.json();
+        onError(data.error || '上傳失敗');
+        console.error('上傳錯誤:', data);
         return;
       }
 
+      const data = await response.json();
       setUploadProgress(100);
       onUploadSuccess(data.document);
       setUploadProgress(0);
     } catch (error) {
-      console.error('上传错误:', error);
-      onError('上传失败，请重试');
+      console.error('上傳錯誤:', error);
+      onError('上傳失敗，請重試');
       setUploadProgress(0);
     }
   };
 
   const handleTextSubmit = async () => {
     if (!rawText.trim()) {
-      onError('请输入文本');
+      onError('請輸入文字');
       return;
     }
 
     try {
       setUploadProgress(10);
 
-      // 创建一个虚拟的 document 记录用于文本输入
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          filename: `text_${Date.now()}`,
+          filename: `文字_${Date.now()}`,
           file_type: 'raw_text',
           raw_text: rawText,
         }),
@@ -103,24 +103,109 @@ export default function DocumentUploader({
 
       setUploadProgress(50);
 
-      const data = await response.json();
-
       if (!response.ok) {
-        onError(data.error || '提交失败');
+        const data = await response.json();
+        onError(data.error || '提交失敗');
+        console.error('提交錯誤:', data);
         return;
       }
 
+      const data = await response.json();
       setUploadProgress(100);
       onUploadSuccess(data.document);
       setUploadProgress(0);
       setRawText('');
       setShowTextInput(false);
     } catch (error) {
-      console.error('提交错误:', error);
-      onError('提交失败，请重试');
+      console.error('提交錯誤:', error);
+      onError('提交失敗，請重試');
       setUploadProgress(0);
     }
   };
+
+  return (
+    <div className="space-y-6">
+      {/* 檔案上傳區域 */}
+      {!showTextInput && (
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed transition-all duration-200 ${
+            isDragging
+              ? 'border-black bg-black/5'
+              : 'border-black/20 hover:border-black/40'
+          } p-8 text-center cursor-pointer`}
+        >
+          <input
+            type="file"
+            id="file-input"
+            onChange={handleFileSelect}
+            accept=".pdf,.txt,.md"
+            className="hidden"
+            disabled={isLoading}
+          />
+          <label htmlFor="file-input" className="cursor-pointer block">
+            <div className="text-4xl mb-4">📄</div>
+            <h3 className="font-serif text-xl font-semibold mb-2">
+              拖拽檔案或點擊上傳
+            </h3>
+            <p className="text-sm text-black/60 mb-4">
+              支持：PDF、TXT、Markdown（最大 10MB）
+            </p>
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div className="w-full bg-black/10 h-1 rounded-full mt-4 overflow-hidden">
+                <div
+                  className="bg-black h-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            )}
+          </label>
+        </div>
+      )}
+
+      {/* 或者文字輸入 */}
+      <div className="border-t border-black/20 pt-6">
+        <button
+          onClick={() => setShowTextInput(!showTextInput)}
+          className="text-sm underline hover:no-underline text-black/70"
+        >
+          {showTextInput ? '或使用檔案上傳' : '或直接貼文字'}
+        </button>
+
+        {showTextInput && (
+          <div className="mt-4 space-y-4">
+            <textarea
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              placeholder="喺呢度貼你嘅文字內容..."
+              className="w-full h-40 border border-black/20 p-4 font-serif text-sm leading-relaxed focus:outline-none focus:border-black"
+            />
+            <div className="flex gap-4">
+              <button
+                onClick={handleTextSubmit}
+                disabled={isLoading || !rawText.trim()}
+                className="flex-1 bg-black text-white py-3 px-6 font-serif font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/90 transition-colors"
+              >
+                {isLoading ? '處理中...' : '提交'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowTextInput(false);
+                  setRawText('');
+                }}
+                className="px-6 border border-black/20 text-black font-serif font-semibold hover:bg-black/5 transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="space-y-6">
