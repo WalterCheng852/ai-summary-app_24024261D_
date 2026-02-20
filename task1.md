@@ -166,7 +166,7 @@ Then login to Vercel:
 vercel login
 ```
 
-> [SCREENSHOT PLACEHOLDER — After logging into Vercel (or running `vercel login`), capture the login prompt and save a screenshot here.][Screenshot description](./screenshots/vercelLogin.png)
+> [SCREENSHOT PLACEHOLDER — After logging into Vercel (or running `vercel login`), capture the login prompt and save a screenshot here.]![Screenshot description](./screenshots/vercelLogin.png)![Screenshot description](./screenshots/vercel.png)
 
 Now deploy the app from the `my-app/` folder
 
@@ -316,7 +316,7 @@ Open `http://localhost:3000` and click the **Check backend** button. It should r
 
 Example output:
 
-> [SCREENSHOT PLACEHOLDER — After clicking the backend check button, capture the health-check output and save a screenshot here.]
+> [SCREENSHOT PLACEHOLDER — After clicking the backend check button, capture the health-check output and save a screenshot here.]![Screenshot description](./screenshots/checkBackend.png)
 
 
 **Commit checkpoint:**

@@ -13,7 +13,7 @@ Test the app in your local development environment, then deploy the app to Verce
 
 **Steps with major screenshots:**
 
-> [your steps and screenshots go here]
+> [your steps and screenshots go here]![Screenshot description](./screenshots/vercelLogin.png)
 
 ## Section 7: AI Summary for documents
 **Requirements:**  
