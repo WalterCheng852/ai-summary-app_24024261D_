@@ -46,6 +46,13 @@ export default function Home() {
     setSuccess('');
   };
 
+  const handleNewSession = () => {
+    setCurrentDocument(null);
+    setCurrentSummary(null);
+    setError('');
+    setSuccess('準備好，揀個新檔案或上傳新嘢啦！');
+  };
+
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -219,6 +226,7 @@ export default function Home() {
                       setSuccess('更新成功！');
                     }}
                     onError={handleError}
+                    onNewSession={handleNewSession}
                   />
                 </motion.div>
               )}

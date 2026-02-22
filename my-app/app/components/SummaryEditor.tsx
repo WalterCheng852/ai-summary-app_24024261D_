@@ -13,6 +13,7 @@ interface SummaryEditorProps {
   document: Document;
   onSuccess: (updatedSummary: Summary) => void;
   onError: (error: string) => void;
+  onNewSession?: () => void;
 }
 
 export default function SummaryEditor({
@@ -20,6 +21,7 @@ export default function SummaryEditor({
   document,
   onSuccess,
   onError,
+  onNewSession,
 }: SummaryEditorProps) {
   const { settings } = usePromptSettings();
   const [isEditing, setIsEditing] = useState(false);
@@ -240,6 +242,11 @@ export default function SummaryEditor({
                 {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                 {copied ? '已複製' : '複製'}
               </button>
+              {onNewSession && (
+                <button onClick={onNewSession} className="btn-secondary flex items-center gap-2 ml-auto">
+                  <Sparkles className="w-4 h-4" /> 開始新工作
+                </button>
+              )}
             </div>
           </motion.div>
         ) : (
