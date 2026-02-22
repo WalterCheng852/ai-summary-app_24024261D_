@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { safeParseJSON, getErrorMessage } from '@/app/lib/api-client';
+import { supabase } from '@/app/lib/supabase';
 import type { Summary, SummaryTone, SummarizeResponse } from '@/app/types';
 import { Sparkles, Loader2, Zap, LayoutList, MessageSquare, ListTree } from 'lucide-react';
 
@@ -35,9 +36,22 @@ export default function SummaryGenerator({
 
     setIsLoading(true);
     try {
+      // 取得 access token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        onError('認證失敗，請重新登入。');
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/summarize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           documentId,
           tone,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/rephrase
@@ -20,6 +21,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '提示（prompt）不能為空' },
         { status: 400 }
+      );
+    }
+
+    // 🔐 從 Authorization header 取得 token
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '需要登入' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      }
+    );
+
+    // 驗證用戶
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認證失敗' },
+        { status: 401 }
       );
     }
 

@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { safeParseJSON, getErrorMessage } from '@/app/lib/api-client';
 import MarkdownRenderer from '@/app/components/MarkdownRenderer';
 import { usePromptSettings } from '@/app/lib/usePromptSettings';
+import { useAuth } from '@/app/lib/auth-context';
+import { supabase } from '@/app/lib/supabase';
 import type { Summary, Document, SummaryTone, SummarizeResponse } from '@/app/types';
 import { Edit3, RefreshCw, Copy, Check, Save, X, Sparkles, Bold, Italic, Underline, Wand2 } from 'lucide-react';
 
@@ -24,6 +26,7 @@ export default function SummaryEditor({
   onNewSession,
 }: SummaryEditorProps) {
   const { settings } = usePromptSettings();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(summary.edited_summary || summary.generated_summary || '');
   const [showRegeneratePanel, setShowRegeneratePanel] = useState(false);
@@ -41,6 +44,17 @@ export default function SummaryEditor({
   const [showRephrasMenu, setShowRephrasMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // 獲取認證 token
+  const getAuthHeader = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('認證失敗，請重新登入');
+    }
+    return `Bearer ${session.access_token}`;
+  };
 
   // 同步滾動功能
   const handleEditorScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
@@ -61,11 +75,21 @@ export default function SummaryEditor({
       return;
     }
 
+    if (!document?.id) {
+      onError('文檔 ID 遺失，請重新加載。');
+      return;
+    }
+
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
+
       const response = await fetch(`/api/documents/${document.id}/summaries`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: authHeader
+        },
         body: JSON.stringify({
           summaryId: summary.id,
           editedSummary: editedText,
@@ -96,9 +120,14 @@ export default function SummaryEditor({
   const handleRegenerate = async () => {
     setIsLoading(true);
     try {
+      const authHeader = await getAuthHeader();
+
       const response = await fetch('/api/regenerate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: authHeader
+        },
         body: JSON.stringify({
           summaryId: summary.id,
           customPrompt: customPrompt.trim() || undefined,
@@ -186,9 +215,14 @@ export default function SummaryEditor({
         prompt = settings.rephraseCasual;
       }
 
+      const authHeader = await getAuthHeader();
+
       const response = await fetch('/api/rephrase', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: authHeader
+        },
         body: JSON.stringify({
           text: selectedText,
           prompt,

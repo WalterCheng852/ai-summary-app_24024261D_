@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/app/lib/supabase';
 import { summarizeWithGitHubModel, SummarizeRequest } from '@/app/lib/github-model-api';
 import { validateRawText } from '@/app/lib/validation';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/summarize
@@ -19,13 +20,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabase();
+    // 🔐 從 Authorization header 取得 token
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '需要登入先至可以生成摘要' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      }
+    );
+
+    // 驗證用戶
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認證失敗' },
+        { status: 401 }
+      );
+    }
 
     // 1. 獲取 document
     const { data: document, error: docError } = await supabase
       .from('documents')
       .select('*')
       .eq('id', documentId)
+      .eq('user_id', user.id) // 🔐 檢查是否屬於當前用戶
       .single();
 
     if (docError || !document) {
@@ -104,6 +131,7 @@ export async function POST(request: NextRequest) {
         .from('summaries')
         .insert({
           document_id: documentId,
+          user_id: user.id, // 🔐 儲存用戶 ID
           original_text: document.raw_text,
           generated_summary: generatedSummary,
           regeneration_count: 0,

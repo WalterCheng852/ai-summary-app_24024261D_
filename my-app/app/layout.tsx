@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { RootClientProviders } from "./providers";
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair-display",
@@ -43,7 +44,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${playfairDisplay.variable} ${sourceSerif4.variable} ${jetbrainsMono.variable}`}
       >
-        {children}
+        <RootClientProviders>{children}</RootClientProviders>
       </body>
     </html>
   );

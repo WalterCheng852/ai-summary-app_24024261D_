@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/app/lib/supabase';
 import { summarizeWithGitHubModel } from '@/app/lib/github-model-api';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/regenerate
@@ -25,13 +26,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabase();
+    // 🔐 從 Authorization header 取得 token
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '需要登入' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      }
+    );
+
+    // 驗證用戶
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認證失敗' },
+        { status: 401 }
+      );
+    }
 
     // 1. 獲取現有嘅 summary 記錄
     const { data: summary, error: summaryError } = await supabase
       .from('summaries')
       .select('*')
       .eq('id', summaryId)
+      .eq('user_id', user.id) // 🔐 檢查權限
       .single();
 
     if (summaryError || !summary) {

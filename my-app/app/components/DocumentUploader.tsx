@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { validateFile } from '@/app/lib/validation';
 import { safeParseJSON, getErrorMessage } from '@/app/lib/api-client';
 import { extractTextFromPDFFile } from '@/app/lib/pdf-parser';
+import { supabase } from '@/app/lib/supabase';
 import type { Document, UploadResponse } from '@/app/types';
 import { FileUp, Type, Loader2, CheckCircle2 } from 'lucide-react';
 
@@ -62,13 +63,26 @@ export default function DocumentUploader({
     }
 
     try {
+      // 取得 access token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        onError('認證失敗，請重新登入。');
+        setInternalLoading(false);
+        return;
+      }
+
       setUploadProgress(10);
       if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
         const extractedText = await extractTextFromPDFFile(file);
         setUploadProgress(40);
         const response = await fetch('/api/upload', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
           body: JSON.stringify({
             filename: file.name,
             file_type: 'raw_text',
@@ -95,6 +109,9 @@ export default function DocumentUploader({
         formData.append('file', file);
         const response = await fetch('/api/upload', {
           method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+          },
           body: formData,
         });
         if (!response.ok) {
@@ -126,9 +143,22 @@ export default function DocumentUploader({
     }
     setInternalLoading(true);
     try {
+      // 取得 access token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        onError('認證失敗，請重新登入。');
+        setInternalLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           filename: `文字貼上 - ${new Date().toLocaleTimeString()}`,
           file_type: 'raw_text',

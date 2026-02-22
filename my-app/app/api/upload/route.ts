@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase, isSupabaseConfigured, getSupabaseConfigMessage } from '@/app/lib/supabase';
 import { validateFile, getFileTypeFromExtension, validateRawText } from '@/app/lib/validation';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/upload
@@ -23,7 +24,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabase();
+    // 🔐 從 Authorization header 取得 token
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '需要登入先至可以上傳檔案' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      }
+    );
+
+    // 驗證用戶認證
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '認證失敗，請重新登入' },
+        { status: 401 }
+      );
+    }
 
     let filename: string;
     let fileType: 'pdf' | 'txt' | 'md' | 'raw_text';
@@ -98,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 第 1 步：建立臨時 document 記錄以取得 ID
-    console.log('💾 建立檔案記錄到 Supabase:', { filename, fileType, textLength: rawText.length });
+    console.log('💾 建立檔案記錄到 Supabase:', { filename, fileType, textLength: rawText.length, userId: user.id });
 
     const { data: docData, error: docError } = await supabase
       .from('documents')
@@ -107,6 +134,7 @@ export async function POST(request: NextRequest) {
         file_url: null,
         file_type: fileType,
         raw_text: rawText,
+        user_id: user.id, // 🔐 儲存用戶 ID
       })
       .select()
       .single();
@@ -130,7 +158,8 @@ export async function POST(request: NextRequest) {
       console.log('📤 上傳檔案到 Object Storage...');
       
       const fileExtension = filename.split('.').pop() || 'txt';
-      const storageFilename = `${documentId}/original.${fileExtension}`;
+      // 🔐 路徑格式必須係 {userId}/{documentId}/... 先能通過 RLS policy
+      const storageFilename = `${user.id}/${documentId}/original.${fileExtension}`;
       
       const { data: storageData, error: storageError } = await supabase.storage
         .from('documents')

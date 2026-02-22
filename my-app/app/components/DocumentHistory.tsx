@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { safeParseJSON, getErrorMessage } from '@/app/lib/api-client';
+import { supabase } from '@/app/lib/supabase';
 import type { Document, DocumentsResponse } from '@/app/types';
 import { FileText, Trash2, Clock, Loader2 } from 'lucide-react';
 
@@ -22,7 +23,22 @@ export default function DocumentHistory({ onSelectDocument }: DocumentHistoryPro
   const fetchDocuments = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/documents');
+      
+      // 取得 access token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        setError('認證失敗，請重新登入。');
+        return;
+      }
+
+      const response = await fetch('/api/documents', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
       if (!response.ok) {
         const errorMsg = await getErrorMessage(response);
         setError(errorMsg);
@@ -45,8 +61,20 @@ export default function DocumentHistory({ onSelectDocument }: DocumentHistoryPro
     e.stopPropagation();
     if (!confirm('你確定要永久刪除呢個檔案同相關摘要？')) return;
     try {
+      // 取得 access token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        setError('認證失敗，請重新登入。');
+        return;
+      }
+
       const response = await fetch(`/api/documents/${docId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         setDocuments(documents.filter((d) => d.id !== docId));
