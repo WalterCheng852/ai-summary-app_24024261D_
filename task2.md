@@ -10,7 +10,10 @@ Website: https://supabase.com/
 - ✅ Implemented backend API endpoints to interact with Supabase Storage and PostgreSQL Database
 - ✅ Successfully deployed to Vercel with full functionality
 - ✅ Regular commits to GitHub repository maintained throughout development
+![Screenshot description](./screenshots/ObjectStorage.png)
+![Screenshot description](./screenshots/supabase_db_data.png)
 
+![Upload Demo GIF](./gifs/06-upload-demo.gif)
 ### Implementation Details
 
 #### 1️⃣ Storage Bucket Configuration
