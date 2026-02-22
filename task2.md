@@ -7,13 +7,12 @@ Website: https://supabase.com/
 
 ### Requirements Met ✅
 - ✅ Built a document upload and file management system powered by Supabase
+![Screenshot description](./screenshots/ObjectStorage.png)
+![Screenshot description](./screenshots/supabase_db_data.png)
 - ✅ Implemented backend API endpoints to interact with Supabase Storage and PostgreSQL Database
 - ✅ Successfully deployed to Vercel with full functionality
 - ✅ Regular commits to GitHub repository maintained throughout development
-![Screenshot description](./screenshots/ObjectStorage.png)
-![Screenshot description](./screenshots/supabase_db_data.png)
-
-![Upload Demo GIF](./gifs/06-upload-demo.gif)
+![Upload Demo GIF](./gifs/fileUpload.gif)
 ### Implementation Details
 
 #### 1️⃣ Storage Bucket Configuration
@@ -141,12 +140,16 @@ This section implements intelligent AI-powered document summarization with multi
 
 ### Requirements Met ✅
 - ✅ AI-powered document summarization using GitHub Models API
+![Upload Demo GIF](./gifs/aiSummary.gif)
 - ✅ Multiple tone/style options (Professional, Casual, Concise, Detailed)
+![Screenshot description](./screenshots/tone.png)
 - ✅ Fully responsive mobile-friendly design
+![Screenshot description](./screenshots/mobile.png)
 - ✅ Secure API key handling (server-side only, not exposed to client)
 - ✅ Edge case handling and comprehensive error management
 - ✅ Regular commits to GitHub maintained throughout
 - ✅ Successfully deployed to Vercel with full functionality
+
 
 ### Implementation Details
 
@@ -203,7 +206,7 @@ This section implements intelligent AI-powered document summarization with multi
 - Users can regenerate summaries with custom instructions
 - Example: "講得簡潔啲" (Make it more concise) or "用列點方式" (Use bullet points)
 - Each regeneration is tracked with `regeneration_count`
-
+![Screenshot description](./screenshots/regen.png)
 **Custom Prompt Examples:**
 ```
 - 用三個關鍵點總結 (Summarize in 3 key points)
@@ -211,7 +214,7 @@ This section implements intelligent AI-powered document summarization with multi
 - 用簡單粵語重寫 (Rewrite in simple Cantonese)
 - 加上實戰建議 (Add practical recommendations)
 ```
-
+![Screenshot description](./screenshots/prompt.png)
 ### Testing Results
 
 **Local Development:**
@@ -670,7 +673,9 @@ Integrated AI text rephrasement with multiple style options directly within the 
 | **簡化 (Simplify)** | Reduce complexity, easier vocabulary | Make content accessible |
 | **專業 (Professional)** | Formal tone, business language | Corporate documents |
 | **隨意 (Casual)** | Conversational, friendly tone | Personal notes, blogs |
-
+![Upload Demo GIF](./gifs/editRegen.gif)
+**Regenerated Demo**
+![Screenshot description](./screenshots/finishRe.png)
 **Editor Features:**
 - **Side-by-Side Preview:** Real-time preview while editing
 - **Text Selection Toolbar:** 
@@ -680,7 +685,7 @@ Integrated AI text rephrasement with multiple style options directly within the 
 - **Scroll Synchronization:** Editor and preview scroll together
 - **Character Counter:** Real-time word/character count
 - **Live Markdown Rendering:** Preview markdown formatting
-
+![Screenshot description](./screenshots/editor.png)
 **Code Implementation** (`SummaryEditor.tsx`):
 ```typescript
 // Text Selection Detection
@@ -777,7 +782,7 @@ A sidebar history section showing all uploaded documents with instant access to 
 - **Metadata Display:** Filename, upload date, file type
 - **Related Summaries:** Every document shows its summaries
 - **Sticky Sidebar:** Always accessible while working
-
+![Screenshot description](./screenshots/sidebar.png)
 **Implementation** (`DocumentHistory.tsx`):
 ```typescript
 useEffect(() => {
@@ -826,18 +831,6 @@ Fully responsive design using Tailwind CSS with mobile-first approach.
 - ✅ Landscape orientation
 - ✅ Touch vs pointer events
 
-### Feature Comparison Table
-
-| Feature | AI Summary App | Typical Competitors |
-|---------|---|---|
-| **Session Management** | ✅ Smart session reset | ❌ Manual refresh required |
-| **3D Animations** | ✅ GPU-accelerated canvas | ❌ Static page |
-| **AI Text Refining** | ✅ 3 rephrase modes | ❌ No AI editing |
-| **Multi-Tone Summaries** | ✅ 4 distinct styles | ❌ Single/dual options |
-| **Document History** | ✅ Full sidebar access | ❌ Limited history |
-| **Mobile Support** | ✅ Fully responsive | ⚠️ Limited support |
-| **Real-time Preview** | ✅ Side-by-side sync | ❌ Separate preview |
-| **Secure API Keys** | ✅ Server-side only | ⚠️ Mixed security |
 
 ### Technical Achievements
 

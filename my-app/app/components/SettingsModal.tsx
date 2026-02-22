@@ -3,20 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, RotateCcw } from 'lucide-react';
+import { PromptSettings, DEFAULT_PROMPTS } from '@/app/lib/usePromptSettings';
 
-interface PromptSettings {
-  summarizePrompt: string;
-  rephraseSimplify: string;
-  rephraseProfessional: string;
-  rephraseCasual: string;
-}
-
-const DEFAULT_PROMPTS: PromptSettings = {
-  summarizePrompt: '將以下文本總結成簡潔嘅要點，保留重要信息：',
-  rephraseSimplify: '用更簡單嘅語言重寫',
-  rephraseProfessional: '用更專業並正式嘅語氣重寫',
-  rephraseCasual: '用更友善同隨意嘅語氣重寫',
-};
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -105,10 +93,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <textarea
                     value={settings.summarizePrompt}
                     onChange={(e) => handleChange('summarizePrompt', e.target.value)}
-                    className="w-full h-24 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
+                    className="w-full h-48 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
                     placeholder="Enter summarize prompt..."
                   />
-                  <p className="text-xs text-zinc-500 italic">
+                  <p className="text-sm text-zinc-500 italic">
                     默認：{DEFAULT_PROMPTS.summarizePrompt}
                   </p>
                 </div>
@@ -125,9 +113,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <textarea
                       value={settings.rephraseSimplify}
                       onChange={(e) => handleChange('rephraseSimplify', e.target.value)}
-                      className="w-full h-20 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
+                      className="w-full h-48 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
                     />
-                    <p className="text-xs text-zinc-500 italic">
+                    <p className="text-sm text-zinc-500 italic">
                       默認：{DEFAULT_PROMPTS.rephraseSimplify}
                     </p>
                   </div>
@@ -140,9 +128,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <textarea
                       value={settings.rephraseProfessional}
                       onChange={(e) => handleChange('rephraseProfessional', e.target.value)}
-                      className="w-full h-20 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
+                      className="w-full h-48 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
                     />
-                    <p className="text-xs text-zinc-500 italic">
+                    <p className="text-sm  text-zinc-500 italic">
                       默認：{DEFAULT_PROMPTS.rephraseProfessional}
                     </p>
                   </div>
@@ -155,9 +143,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <textarea
                       value={settings.rephraseCasual}
                       onChange={(e) => handleChange('rephraseCasual', e.target.value)}
-                      className="w-full h-20 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
+                      className="w-full h-48 bg-black/40 border border-white/20 rounded-xl p-4 text-sm text-zinc-100 focus:outline-none focus:border-white/40 transition-all custom-scrollbar"
                     />
-                    <p className="text-xs text-zinc-500 italic">
+                    <p className="text-sm text-zinc-500 italic">
                       默認：{DEFAULT_PROMPTS.rephraseCasual}
                     </p>
                   </div>

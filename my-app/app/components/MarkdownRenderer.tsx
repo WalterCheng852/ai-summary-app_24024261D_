@@ -1,6 +1,7 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 interface MarkdownRendererProps {
   content: string;
@@ -14,6 +15,7 @@ export default function MarkdownRenderer({
   return (
     <div className={`markdown-content ${className}`}>
       <ReactMarkdown
+        rehypePlugins={[rehypeRaw]}
         components={{
           h1: ({ children }) => (
             <h1 className="text-4xl font-bold font-serif border-b border-zinc-800 pb-4 mt-8 mb-4 tracking-tight text-white">
@@ -74,6 +76,16 @@ export default function MarkdownRenderer({
             <strong className="font-bold text-white">
               {children}
             </strong>
+          ),
+          em: ({ children }) => (
+            <em className="italic text-white">
+              {children}
+            </em>
+          ),
+          u: ({ children }) => (
+            <u className="underline decoration-1 underline-offset-2 text-white">
+              {children}
+            </u>
           ),
           hr: () => (
             <hr className="my-8 border-none h-px bg-zinc-800" />
