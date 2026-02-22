@@ -242,8 +242,7 @@ export default function AppPage() {
                   >
                     <SummaryGenerator
                       documentId={currentDocument.id}
-                      rawText={currentDocument.raw_text}
-                      onSummaryGenerated={handleGenerateSummarySuccess}
+                      onSuccess={handleGenerateSummarySuccess}
                       onError={handleError}
                     />
                   </motion.div>
