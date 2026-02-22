@@ -136,17 +136,7 @@ export default function LoginPage() {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-8 p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
-            <p className="text-sm text-slate-400 mb-2">
-              <span className="font-semibold text-blue-400">測試帳戶：</span>
-            </p>
-            <p className="text-xs text-slate-500 font-mono break-all">
-              Email: test@example.com
-            </p>
-            <p className="text-xs text-slate-500 font-mono break-all">
-              Password: password123
-            </p>
-          </div>
+          
         </div>
       </motion.div>
     </div>
