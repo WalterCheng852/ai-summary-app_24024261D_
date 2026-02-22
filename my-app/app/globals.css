@@ -141,14 +141,14 @@
   }
 
   .btn-secondary {
-    @apply bg-transparent text-black px-8 py-4 font-serif font-semibold uppercase tracking-widest text-sm border-2 border-black transition-all duration-100;
+    @apply bg-transparent text-white px-8 py-4 font-serif font-semibold uppercase tracking-widest text-sm border-2 border-white transition-all duration-100;
     
     &:hover {
-      @apply bg-black text-white;
+      @apply bg-white text-black;
     }
     
     &:focus-visible {
-      @apply outline outline-3 outline-black outline-offset-3;
+      @apply outline outline-3 outline-white outline-offset-3;
     }
   }
 

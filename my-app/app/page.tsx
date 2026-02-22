@@ -1,27 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DocumentUploader from '@/app/components/DocumentUploader';
 import DocumentHistory from '@/app/components/DocumentHistory';
 import SummaryGenerator from '@/app/components/SummaryGenerator';
 import SummaryEditor from '@/app/components/SummaryEditor';
+import HeroCanvas from '@/app/components/HeroCanvas';
+import SettingsModal from '@/app/components/SettingsModal';
+import { Sparkles, History, Upload, FileText, ChevronRight, Settings } from 'lucide-react';
 
 export default function Home() {
   const [currentDocument, setCurrentDocument] = useState<any>(null);
   const [currentSummary, setCurrentSummary] = useState<any>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const handleUploadSuccess = (document: any) => {
     setCurrentDocument(document);
     setCurrentSummary(null);
     setError('');
-    setSuccess('檔案上傳成功，而家可以生成摘要');
+    setSuccess('正！檔案上傳成功，而家可以生成摘要。');
   };
 
   const handleGenerateSummarySuccess = (summary: any) => {
     setCurrentSummary(summary);
-    setSuccess('摘要生成成功');
+    setSuccess('搞掂！摘要已經生成好。');
     setError('');
   };
 
@@ -36,76 +46,104 @@ export default function Home() {
     setSuccess('');
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8, staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="min-h-screen bg-white text-black">
-      {/* 頂部分隔線 */}
-      <div className="h-1 bg-black" />
+    <div className="relative min-h-screen text-white overflow-x-hidden">
+      <HeroCanvas />
 
-      {/* 標題區 - Drama through scale and negative space */}
-      <header className="border-b-4 border-black px-8 py-24 md:py-32 lg:py-40 relative">
-        {/* Subtle grid texture */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-5"
-          style={{
-            backgroundImage: 'linear-gradient(#00000008 1px, transparent 1px), linear-gradient(90deg, #00000008 1px, transparent 1px)',
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="relative z-10">
-          <h1 className="font-serif text-9xl md:text-9xl font-bold tracking-tighter leading-none mb-6">
-            AI<br/>Summary
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1 }}
+        >
+          <h1 className="text-7xl md:text-9xl font-bold tracking-tighter mb-6 neon-text">
+            AI <span className="italic">Summary</span>
           </h1>
-          <div className="h-1 w-24 bg-black mb-8" />
-          <p className="text-xl md:text-2xl text-black/80 font-serif max-w-3xl leading-relaxed">
-            上傳你嘅檔案或者直接貼文字，等 AI 幫你生成專業摘要。可以編輯、重新生成同儲存。
+          <p className="text-xl md:text-2xl text-zinc-400 font-serif max-w-2xl mx-auto leading-relaxed mb-12">
+            將繁瑣嘅文件，化成精煉嘅智慧。<br className="hidden md:block" />
+            上傳檔案、生成摘要、管理歷史，一站式搞掂。
           </p>
-        </div>
-      </header>
+          <div className="flex gap-4 justify-center">
+            <button 
+              onClick={() => document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' })}
+              className="btn-primary flex items-center gap-2 group"
+            >
+              即刻開始 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="btn-secondary flex items-center gap-2 group"
+            >
+              <Settings className="w-4 h-4" /> 設置
+            </button>
+          </div>
+        </motion.div>
+      </section>
 
-      {/* 主要內容 */}
-      <main className="px-8 py-24 md:py-32 lg:py-40">
-        <div className="max-w-6xl mx-auto">
-          {/* 錯誤同成功訊息 */}
-          {error && (
-            <div className="border-4 border-black bg-black/5 p-8 mb-12 font-serif">
-              <p className="text-base text-black font-semibold">⚠️ {error}</p>
-            </div>
+      {/* Settings Modal */}
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+      {/* Main Content Area */}
+      <main id="main-content" className="relative z-10 px-3 py-20 w-full">
+        <div className="mx-auto" style={{ maxWidth: '1800px' }}>
+        <AnimatePresence mode="wait">
+          {(error || success) && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-12"
+            >
+              <div className={`glass-panel p-6 border-l-4 ${error ? 'border-red-500 bg-red-500/10' : 'border-white bg-white/5'}`}>
+                <p className="text-lg font-medium flex items-center gap-3">
+                  {error ? '⚠️ ' + error : '✓ ' + success}
+                </p>
+              </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {success && (
-            <div className="border-4 border-black bg-black/5 p-8 mb-12 font-serif">
-              <p className="text-base text-black font-semibold">✓ {success}</p>
-            </div>
-          )}
-
-          {/* 兩欄佈局（桌面）或單欄（手機） */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-            {/* 左側：上傳同歷史 */}
-            <div className="lg:col-span-1 space-y-16">
-              {/* 上傳區 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          {/* Left Sidebar: Upload & History (Sticky) */}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-3 space-y-4 lg:sticky lg:top-8"
+          >
+            {/* Upload Section */}
+            <motion.div variants={itemVariants} className="glass-panel p-3 interactive-glow">
+              <div className="flex items-center gap-2 mb-3">
+                <Upload className="text-zinc-400 w-4 h-4" />
+                <h2 className="text-sm font-bold">上傳</h2>
+              </div>
+              
               {!currentDocument ? (
-                <div className="border-4 border-black p-12 bg-white relative">
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-3"
-                    style={{
-                      backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, #000 1px, #000 2px)',
-                      backgroundSize: '100% 4px'
-                    }}
-                  />
-                  <div className="relative z-10">
-                    <h2 className="font-serif text-5xl font-bold mb-8 tracking-tight">上傳</h2>
-                    <DocumentUploader
-                      onUploadSuccess={handleUploadSuccess}
-                      onError={handleError}
-                    />
-                  </div>
-                </div>
+                <DocumentUploader
+                  onUploadSuccess={handleUploadSuccess}
+                  onError={handleError}
+                />
               ) : (
-                <div className="border-4 border-black p-12 space-y-6 bg-white">
-                  <div className="border-b-2 border-black pb-4">
-                    <p className="font-serif text-xs uppercase tracking-widest text-black/60 mb-2">當前檔案</p>
-                    <h3 className="font-serif text-3xl font-bold truncate">
-                      {currentDocument.filename}
+                <div className="space-y-4">
+                  <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-xs uppercase tracking-widest text-zinc-500 mb-1">當前處理緊</p>
+                    <h3 className="text-xl font-bold truncate flex items-center gap-2">
+                      <FileText className="w-4 h-4" /> {currentDocument.filename}
                     </h3>
                   </div>
                   <button
@@ -113,142 +151,90 @@ export default function Home() {
                       setCurrentDocument(null);
                       setCurrentSummary(null);
                     }}
-                    className="w-full py-3 px-6 border-2 border-black text-black font-serif font-semibold text-base hover:bg-black hover:text-white transition-all duration-100 uppercase tracking-wider"
+                    className="w-full btn-secondary text-sm"
                   >
-                    + 上傳新檔案
+                    + 上傳另一個
                   </button>
                 </div>
               )}
+            </motion.div>
 
-              {/* 歷史記錄 */}
-              <div className="border-4 border-black p-12 bg-white relative">
-                <div 
-                  className="absolute inset-0 pointer-events-none opacity-3"
-                  style={{
-                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 40px, #00000008 40px, #00000008 42px)',
-                  }}
-                />
-                <div className="relative z-10">
-                  <h2 className="font-serif text-4xl font-bold mb-8 tracking-tight">歷史記錄</h2>
-                  <DocumentHistory onSelectDocument={handleSelectDocument} />
-                </div>
+            {/* History Section */}
+            <motion.div variants={itemVariants} className="glass-panel p-3 interactive-glow">
+              <div className="flex items-center gap-2 mb-3">
+                <History className="text-zinc-400 w-4 h-4" />
+                <h2 className="text-sm font-bold">歷史</h2>
               </div>
-            </div>
+              <DocumentHistory onSelectDocument={handleSelectDocument} />
+            </motion.div>
+          </motion.div>
 
-            {/* 右側：生成同編輯 */}
-            <div className="lg:col-span-2 space-y-16">
-              {currentDocument && !currentSummary && (
-                <div className="border-4 border-black p-12 bg-white relative">
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-3"
-                    style={{
-                      backgroundImage: 'linear-gradient(#00000008 1px, transparent 1px)',
-                      backgroundSize: '100% 4px'
-                    }}
+          {/* Right Main Column: Generator & Editor */}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-9"
+          >
+            <AnimatePresence mode="wait">
+              {!currentDocument ? (
+                <motion.div 
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="glass-panel p-20 flex flex-col items-center justify-center text-center opacity-50"
+                >
+                  <Sparkles className="w-16 h-16 mb-6 text-zinc-600" />
+                  <p className="text-xl font-serif italic text-zinc-500">
+                    喺左邊揀個檔案或者上傳新嘢，<br />我哋就開始生成摘要。
+                  </p>
+                </motion.div>
+              ) : currentDocument && !currentSummary ? (
+                <motion.div 
+                  key="generator"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  className="glass-panel p-10 neon-border"
+                >
+                  <SummaryGenerator
+                    documentId={currentDocument.id}
+                    onSuccess={handleGenerateSummarySuccess}
+                    onError={handleError}
                   />
-                  <div className="relative z-10">
-                    <h2 className="font-serif text-5xl font-bold mb-8 tracking-tight">
-                      生成摘要
-                    </h2>
-                    <SummaryGenerator
-                      documentId={currentDocument.id}
-                      onSuccess={handleGenerateSummarySuccess}
-                      onError={handleError}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {currentSummary && (
-                <div className="border-4 border-black p-12 space-y-12 bg-white relative">
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-2"
-                    style={{
-                      backgroundImage: 'linear-gradient(#00000008 1px, transparent 1px), linear-gradient(90deg, #00000008 1px, transparent 1px)',
-                      backgroundSize: '40px 40px'
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="editor"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <SummaryEditor
+                    summary={currentSummary}
+                    document={currentDocument}
+                    onSuccess={(updatedSummary) => {
+                      setCurrentSummary(updatedSummary);
+                      setSuccess('更新成功！');
                     }}
+                    onError={handleError}
                   />
-                  <div className="relative z-10">
-                    <div className="mb-8">
-                      <h2 className="font-serif text-5xl font-bold mb-4 tracking-tight">
-                        摘要
-                      </h2>
-                      <div className="h-1 w-32 bg-black" />
-                    </div>
-                    <SummaryEditor
-                      summary={currentSummary}
-                      document={currentDocument}
-                      onSuccess={(updated) => {
-                        setCurrentSummary(updated);
-                        setSuccess('摘要已更新');
-                      }}
-                      onError={handleError}
-                    />
-                  </div>
-
-                  {/* 原始文字預覽 */}
-                  <div className="border-t-4 border-black pt-12 relative">
-                    <div 
-                      className="absolute inset-0 pointer-events-none opacity-2"
-                      style={{
-                        backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 1px, #00000008 1px, #00000008 2px)',
-                        backgroundSize: '4px 100%'
-                      }}
-                    />
-                    <details className="cursor-pointer group">
-                      <summary className="font-serif text-3xl font-bold mb-6 tracking-tight select-none hover:underline">
-                        📄 查看原始文字
-                      </summary>
-                      <div className="bg-black/5 border-2 border-black p-8 mt-6 font-serif text-base leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto">
-                        {currentDocument.raw_text ? (
-                          <>
-                            {currentDocument.raw_text.substring(0, 500)}
-                            {currentDocument.raw_text.length > 500 ? '...' : ''}
-                          </>
-                        ) : (
-                          <p className="text-black/50">沒有原始文字可用</p>
-                        )}
-                      </div>
-                    </details>
-                  </div>
-                </div>
+                </motion.div>
               )}
-
-              {!currentDocument && (
-                <div className="border-4 border-black p-24 bg-black text-white text-center py-32 relative">
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-5"
-                    style={{
-                      backgroundImage: 'radial-gradient(circle at top center, #ffffff, transparent 70%)',
-                    }}
-                  />
-                  <div className="relative z-10">
-                    <p className="font-serif text-3xl text-white leading-relaxed">
-                      上傳檔案
-                      <br/>
-                      開始生成
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+            </AnimatePresence>
+          </motion.div>
+        </div>
         </div>
       </main>
 
-      {/* 底部區域 */}
-      <div className="h-1 bg-black" />
-      <footer className="px-8 py-16 text-center text-sm text-black/60 font-serif bg-black/2 relative">
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-3"
-          style={{
-            backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 1px, #000 1px, #000 2px)',
-            backgroundSize: '4px 100%'
-          }}
-        />
-        <div className="relative z-10">
-          <p className="uppercase tracking-widest">AI Summary • 2026</p>
-          <p className="mt-2">Powered by GitHub Models & Advanced AI</p>
+      <footer className="relative z-10 py-12 px-6 border-t border-white/5 bg-black/50 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-zinc-500 text-sm">
+          <p>© 2026 AI Summary App - 繁體粵語版</p>
+          <div className="flex gap-8">
+            <a href="#" className="hover:text-white transition-colors">使用條款</a>
+            <a href="#" className="hover:text-white transition-colors">隱私政策</a>
+          </div>
         </div>
       </footer>
     </div>
